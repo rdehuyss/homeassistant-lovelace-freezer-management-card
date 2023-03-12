@@ -1,7 +1,7 @@
 ## HA Card to manage your freezer.
 
 ### Prerequisites
-There is currently no way to save data in the DB that survives HA restarts. That's why this card uses the `file notify service` and the `file sensor`.
+There is currently no way to save data in the DB that survives HA restarts. That's why this card uses the `file notify service` and the `command_line sensor`.
 
 To set this card up, make sure to have the following in your configuration:
 ```
