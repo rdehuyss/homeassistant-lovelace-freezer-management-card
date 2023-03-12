@@ -11,9 +11,13 @@ notify:
     filename: ./diepvries-contents.json
     
 sensor:
-  - platform: file
+  - platform: command_line
     name: diepvries-contents
-    file_path: /config/diepvries-contents.json
+    json_attributes:
+      - count
+      - items
+    command: "tail -1 /config/diepvries-contents.json"
+    value_template: "{{ value_json.count }}"
 ```
 
 ### Card config
