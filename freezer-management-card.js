@@ -35,8 +35,8 @@ class FreezerManagementCard extends HTMLElement {
     
     load() {
 		if(this._hass && this.contents_sensor) {
-			if(this.state == null || this.contents != this._hass.states[this.contents_sensor].state) {
-	    		this.contents = this._hass.states[this.contents_sensor].state;
+			if(this.state == null || this.contents != this._hass.states[this.contents_sensor]) {
+	    		this.contents = this._hass.states[this.contents_sensor];
 	    		this.parseContentsFromHass();
 	    		this.setState('show-start-button');
 	    	}
@@ -142,7 +142,7 @@ class FreezerManagementCard extends HTMLElement {
         `;
         this.querySelector('#compartment-number-next').addEventListener('click', () => {
 			this.potCompartment = this.querySelector('#compartment-number').value;
-			const newPot = { 'potIndex': -1, 'potContents': this.potContents, 'potNumber': this.potNumber, 'potCompartment': this.potCompartment, 'potDate': this.formatDate(new Date(), "d MMM"), 'potIsoDate': new Date().toISOString()};
+			const newPot = { 'potIndex': this.parsedContents.length + 1, 'potContents': this.potContents, 'potNumber': this.potNumber, 'potCompartment': this.potCompartment, 'potDate': this.formatDate(new Date(), "d MMM"), 'potIsoDate': new Date().toISOString()};
 			this.parsedContents = [newPot, ...this.parsedContents];
 			this.saveContentsToHass();
 			this.setState('show-start-button');
@@ -172,13 +172,7 @@ class FreezerManagementCard extends HTMLElement {
 	}
 	
 	parseContentsFromHass() {
-		this.parsedContents = this.contents
-			.split(' ||| ')
-			.map((x, index) => [index, ...[...x.split(' || ')]])
-			.map(splitted => {
-					const [potIndex, potContents, potNumber, potCompartment, potDate, potIsoDate] = splitted;
-					return {potIndex, potContents, potNumber, potCompartment, potDate, potIsoDate}
-				});
+		this.parsedContents = this.contents.attributes['items'];
 		this.parsedContents.sort(function (a, b) {
 		    return a.potContents.localeCompare(b.potContents) || a.potIsoDate.localeCompare(b.potIsoDate);
 		});
@@ -190,14 +184,8 @@ class FreezerManagementCard extends HTMLElement {
 	}
 	
 	saveContentsToHass() {
-		const contentsToHass = this.parsedContents
-			.map(x => `${x.potContents} || ${x.potNumber} || ${x.potCompartment} || ${x.potDate} || ${x.potIsoDate}`)
-			.filter(x => !x.includes('|| / || / || /'));
-		if(contentsToHass.length > 0) {
-			this._hass.callService("notify", "diepvries", { message: contentsToHass.join(' ||| ') });
-		} else {
-			this._hass.callService("notify", "diepvries", { message: `${this._label('freezer-empty')} || / || / || / || /` });
-		}
+		const contentToSave = { count: this.parsedContents.length, items: this.parsedContents };
+		this._hass.callService("notify", "diepvries", { message: JSON.stringify(contentToSave) });
 		this._hass.callService("homeassistant", "update_entity", { entity_id: this.contents_sensor });
 	}
 	
