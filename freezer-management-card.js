@@ -142,7 +142,7 @@ class FreezerManagementCard extends HTMLElement {
         `;
         this.querySelector('#compartment-number-next').addEventListener('click', () => {
 			this.potCompartment = this.querySelector('#compartment-number').value;
-			const newPot = { 'potIndex': this.parsedContents.length + 1, 'potContents': this.potContents, 'potNumber': this.potNumber, 'potCompartment': this.potCompartment, 'potDate': this.formatDate(new Date(), "d MMM"), 'potIsoDate': new Date().toISOString()};
+			const newPot = { 'potContents': this.potContents, 'potNumber': this.potNumber, 'potCompartment': this.potCompartment, 'potDate': this.formatDate(new Date(), "d MMM"), 'potIsoDate': new Date().toISOString()};
 			this.parsedContents = [newPot, ...this.parsedContents];
 			this.saveContentsToHass();
 			this.setState('show-start-button');
@@ -155,10 +155,10 @@ class FreezerManagementCard extends HTMLElement {
     			<tr><th align="left" style="width:45%">${this._label('food-table-container-contents')}</th><th align="right" style="width:15%">${this._label('food-table-container-number')}</th><th align="right" style="width:15%">${this._label('food-table-compartment-number')}</th><th align="right" style="width:20%">${this._label('food-table-container-date')}</th><th>&nbsp;</th></tr>
     		</table>`;
     	if(this.parsedContents) {
-	    	for(let option of this.parsedContents) {
-	    		this.querySelector('#freezer-contents-table').insertAdjacentHTML('beforeend', `<tr><td>${option.potContents}</td><td style="text-align: right">${option.potNumber}</td><td style="text-align: right">${option.potCompartment}</td><td style="text-align: right">${option.potDate}</td><td><ha-icon-button id="pot-delete-${option.potIndex}"><ha-icon icon="mdi:delete"></ha-icon></ha-icon-button></td></tr>`);
-	    		this.querySelector(`#pot-delete-${option.potIndex}`).addEventListener('click', () => {
-	    			this.parsedContents = this.parsedContents.filter(pot => pot.potIndex !== option.potIndex);
+	    	for(const [index, option] of this.parsedContents.entries()) {
+	    		this.querySelector('#freezer-contents-table').insertAdjacentHTML('beforeend', `<tr><td>${option.potContents}</td><td style="text-align: right">${option.potNumber}</td><td style="text-align: right">${option.potCompartment}</td><td style="text-align: right">${option.potDate}</td><td><ha-icon-button id="pot-delete-${index}"><ha-icon icon="mdi:delete"></ha-icon></ha-icon-button></td></tr>`);
+	    		this.querySelector(`#pot-delete-${index}`).addEventListener('click', () => {
+	    			this.parsedContents.splice(index, 1);
 	    			this.saveContentsToHass();
 	    		});
 	    	}
